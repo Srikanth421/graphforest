@@ -142,7 +142,9 @@ class DirectedGraphForestClassifier:
 
         # Meta-learner input: concatenate all branch outputs
         meta_input = np.hstack([tab_proba, graph_proba, neighborhood_scores])
+        meta_input = np.nan_to_num(meta_input, nan=0.0, posinf=0.0, neginf=0.0)
         meta_input_scaled = self._scaler.fit_transform(meta_input)
+        meta_input_scaled = np.nan_to_num(meta_input_scaled, nan=0.0)
         self._meta.fit(meta_input_scaled, y)
 
         self._fitted = True
@@ -167,7 +169,9 @@ class DirectedGraphForestClassifier:
         ).reshape(-1, 1)
 
         meta_input = np.hstack([tab_proba, graph_proba, neighborhood_scores])
+        meta_input = np.nan_to_num(meta_input, nan=0.0, posinf=0.0, neginf=0.0)
         meta_input_scaled = self._scaler.transform(meta_input)
+        meta_input_scaled = np.nan_to_num(meta_input_scaled, nan=0.0)
         return self._meta.predict_proba(meta_input_scaled)
 
     def predict(self, df: pd.DataFrame) -> np.ndarray:

@@ -77,7 +77,7 @@ class GraphRandomForestClassifier:
             gamma=self.gamma,
             lam=self.lam,
             random_state=int(rng.integers(1e6)),
-            classes=self.classes_,   # add this
+            classes=self.classes_,  
         )
         tree.fit(
             X[idx], y[idx],

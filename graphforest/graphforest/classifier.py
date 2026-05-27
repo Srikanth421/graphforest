@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from graphforest.graph_builder import TransactionGraphBuilder
 from graphforest.graph_features import compute_all_features
 from graphforest.neighborhood import NeighborhoodRiskEstimator
+from graphforest.forest import GraphRandomForestClassifier
 
 
 FRAUD_TYPES = {
@@ -62,8 +63,9 @@ class DirectedGraphForestClassifier:
         self._tabular_rf = RandomForestClassifier(
             n_estimators=n_estimators, random_state=random_state, class_weight="balanced"
         )
-        self._graph_rf = RandomForestClassifier(
-            n_estimators=n_estimators, random_state=random_state, class_weight="balanced"
+        self._graph_rf = GraphRandomForestClassifier(
+            n_estimators=n_estimators,
+            random_state=random_state,
         )
         self._meta = LogisticRegression(max_iter=1000, random_state=random_state)
         self._scaler = StandardScaler()
@@ -121,8 +123,17 @@ class DirectedGraphForestClassifier:
 
         # Branch 2: graph RF
         X_graph = self._build_graph_feature_matrix(df, G, fraud_nodes)
-        self._graph_rf.fit(X_graph, y)
-        graph_proba = self._graph_rf.predict_proba(X_graph)
+        graph_risk = np.array([
+        self._neighborhood.score(G, node)
+        for node in df[self.source_col].tolist()
+        ])
+        cycle_risk = X_graph['cycle_score'].values if 'cycle_score' in X_graph.columns else np.zeros(len(df))
+        self._graph_rf.fit(
+            X_graph.values, np.array(y),
+            graph_risk=graph_risk,
+            cycle_risk=cycle_risk,
+        )
+        graph_proba = self._graph_rf.predict_proba(X_graph.values)
 
         # Branch 3: neighborhood risk (single score per row)
         neighborhood_scores = self._neighborhood.score_nodes(

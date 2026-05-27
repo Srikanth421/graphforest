@@ -117,27 +117,31 @@ def compute_all_features(
     }
 
 def compute_all_features_batch(G: nx.DiGraph, nodes: list, fraud_nodes: set = None) -> pd.DataFrame:
-    """
-    Compute graph features for all nodes at once.
-    Much faster than calling compute_all_features per row.
-    """
     if fraud_nodes is None:
         fraud_nodes = set()
 
-    # Compute expensive metrics once for entire graph
     if G.number_of_edges() > 0:
-        pr    = nx.pagerank(G, alpha=0.85, weight="weight")
+        pr = nx.pagerank(G, alpha=0.85, weight="weight")
         hubs, auths = nx.hits(G, max_iter=100)
     else:
         pr = {}; hubs = {}; auths = {}
 
     rows = []
     for node in nodes:
+        if node not in G:
+            # Unseen node — return zeros
+            rows.append({
+                "in_degree": 0, "out_degree": 0,
+                "weighted_in_degree": 0.0, "weighted_out_degree": 0.0,
+                "pagerank": 0.0, "hub_score": 0.0, "authority_score": 0.0,
+                "neighbor_fraud_rate": 0.0, "cycle_score": 0.0,
+            })
+            continue
+
         neighbors = set(G.predecessors(node)) | set(G.successors(node))
         fraud_neighbors = len(neighbors & fraud_nodes)
         neighbor_fraud  = fraud_neighbors / len(neighbors) if neighbors else 0.0
 
-        # Cycle score only on local subgraph
         local = G.subgraph(neighbors | {node})
         try:
             cycles = list(nx.simple_cycles(local))
@@ -146,10 +150,10 @@ def compute_all_features_batch(G: nx.DiGraph, nodes: list, fraud_nodes: set = No
             cyc = 0.0
 
         rows.append({
-            "in_degree":           G.in_degree(node)  if node in G else 0,
-            "out_degree":          G.out_degree(node) if node in G else 0,
-            "weighted_in_degree":  sum(d.get("weight",1) for _,_,d in G.in_edges(node,  data=True)) if node in G else 0.0,
-            "weighted_out_degree": sum(d.get("weight",1) for _,_,d in G.out_edges(node, data=True)) if node in G else 0.0,
+            "in_degree":           G.in_degree(node),
+            "out_degree":          G.out_degree(node),
+            "weighted_in_degree":  sum(d.get("weight",1) for _,_,d in G.in_edges(node,  data=True)),
+            "weighted_out_degree": sum(d.get("weight",1) for _,_,d in G.out_edges(node, data=True)),
             "pagerank":            pr.get(node, 0.0),
             "hub_score":           hubs.get(node, 0.0),
             "authority_score":     auths.get(node, 0.0),

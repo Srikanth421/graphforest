@@ -91,8 +91,18 @@ class GraphRandomForestClassifier:
         return self
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        all_proba = np.array([t.predict_proba(X) for t in self.trees_])
-        return all_proba.mean(axis=0)
+        """Average probabilities across all trees, aligned to global classes."""
+        n_samples = X.shape[0]
+        avg_proba = np.zeros((n_samples, self.n_classes_))
+
+        for tree in self.trees_:
+            tree_proba = tree.predict_proba(X)
+            # Map tree classes to global classes
+            for local_idx, cls in enumerate(tree.classes_):
+                global_idx = np.where(self.classes_ == cls)[0][0]
+                avg_proba[:, global_idx] += tree_proba[:, local_idx]
+
+        return avg_proba / len(self.trees_)
 
     def predict(self, X: np.ndarray) -> np.ndarray:
         proba = self.predict_proba(X)

@@ -44,6 +44,7 @@ class GraphDecisionTreeClassifier:
         gamma: float = 0.1,    # weight for cycle/ring separation
         lam: float = 0.05,     # complexity penalty weight
         random_state: int = 42,
+        classes: np.ndarray = None,
     ):
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
@@ -58,6 +59,7 @@ class GraphDecisionTreeClassifier:
         self.n_classes_: int = 0
         self.classes_: np.ndarray = np.array([])
         self._rng = np.random.default_rng(random_state)
+        self._forced_classes = classes
 
     def fit(
         self,
@@ -72,7 +74,10 @@ class GraphDecisionTreeClassifier:
         graph_risk : per-sample neighborhood risk score [0,1]
         cycle_risk : per-sample cycle/ring score [0,1]
         """
-        self.classes_ = np.unique(y)
+        if self._forced_classes is not None:
+            self.classes_ = self._forced_classes
+        else:
+            self.classes_ = np.unique(y)
         self.n_classes_ = len(self.classes_)
         self._class_to_idx = {c: i for i, c in enumerate(self.classes_)}
 

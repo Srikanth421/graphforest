@@ -64,26 +64,27 @@ class GraphRandomForestClassifier:
 
         seeds = np.random.SeedSequence(self.random_state).spawn(self.n_estimators)
 
-        def _fit_one(seed):
-            rng = np.random.default_rng(seed)
-            idx = rng.choice(len(y), size=len(y), replace=True)
-            tree = GraphDecisionTreeClassifier(
-                max_depth=self.max_depth,
-                min_samples_leaf=self.min_samples_leaf,
-                max_features=self.max_features,
-                max_thresholds=self.max_thresholds,
-                alpha=self.alpha,
-                beta=self.beta,
-                gamma=self.gamma,
-                lam=self.lam,
-                random_state=int(rng.integers(1e6)),
-            )
-            tree.fit(
-                X[idx], y[idx],
-                graph_risk=graph_risk[idx],
-                cycle_risk=cycle_risk[idx],
-            )
-            return tree
+    def _fit_one(seed):
+        rng = np.random.default_rng(seed)
+        idx = rng.choice(len(y), size=len(y), replace=True)
+        tree = GraphDecisionTreeClassifier(
+            max_depth=self.max_depth,
+            min_samples_leaf=self.min_samples_leaf,
+            max_features=self.max_features,
+            max_thresholds=self.max_thresholds,
+            alpha=self.alpha,
+            beta=self.beta,
+            gamma=self.gamma,
+            lam=self.lam,
+            random_state=int(rng.integers(1e6)),
+            classes=self.classes_,   # add this
+        )
+        tree.fit(
+            X[idx], y[idx],
+            graph_risk=graph_risk[idx],
+            cycle_risk=cycle_risk[idx],
+        )
+        return tree
 
         self.trees_ = Parallel(n_jobs=self.n_jobs)(
             delayed(_fit_one)(s) for s in seeds

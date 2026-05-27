@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: graphforest
+Version: 0.1.0
+Summary: Directed graph-aware random forest for explainable fraud detection
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: scikit-learn>=1.4
+Requires-Dist: networkx>=3.2
+Requires-Dist: numpy>=1.26
+Requires-Dist: pandas>=2.1
+Requires-Dist: shap>=0.44
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: jupyter>=1.0; extra == "dev"
+Requires-Dist: black>=24.0; extra == "dev"

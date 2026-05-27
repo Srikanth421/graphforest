@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "graphforest"
+version = "0.1.0"
+description = "Directed graph-aware random forest for explainable fraud detection"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "scikit-learn>=1.4",
+    "networkx>=3.2",
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "shap>=0.44",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "jupyter>=1.0",
+    "black>=24.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["graphforest*"]

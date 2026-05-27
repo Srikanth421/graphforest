@@ -1,0 +1,10 @@
+scikit-learn>=1.4
+networkx>=3.2
+numpy>=1.26
+pandas>=2.1
+shap>=0.44
+
+[dev]
+pytest>=8.0
+jupyter>=1.0
+black>=24.0

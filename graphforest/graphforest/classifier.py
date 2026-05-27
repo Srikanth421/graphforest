@@ -82,12 +82,10 @@ class DirectedGraphForestClassifier:
     def _build_graph_feature_matrix(
         self, df: pd.DataFrame, G: nx.DiGraph, fraud_nodes: set
     ) -> pd.DataFrame:
-        rows = []
-        for _, row in df.iterrows():
-            node = row[self.source_col]
-            feats = compute_all_features(G, node, fraud_nodes=fraud_nodes)
-            rows.append({k: feats[k] for k in self.graph_features if k in feats})
-        return pd.DataFrame(rows, index=df.index)
+        from graphforest.graph_features import compute_all_features_batch
+        nodes = df[self.source_col].tolist()
+        result = compute_all_features_batch(G, nodes, fraud_nodes=fraud_nodes)
+        return result[[f for f in self.graph_features if f in result.columns]]
 
     def fit(self, df: pd.DataFrame, y: pd.Series) -> "DirectedGraphForestClassifier":
         """

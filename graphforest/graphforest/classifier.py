@@ -162,7 +162,7 @@ class DirectedGraphForestClassifier:
             tab_proba = np.zeros((len(df), len(self.classes_)))
 
         X_graph = self._build_graph_feature_matrix(df, self._G, self._fraud_nodes)
-        graph_proba = self._graph_rf.predict_proba(X_graph)
+        graph_proba = self._graph_rf.predict_proba(X_graph.values)
 
         neighborhood_scores = self._neighborhood.score_nodes(
             self._G, df[self.source_col].tolist()
